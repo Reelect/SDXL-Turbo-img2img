@@ -6,6 +6,8 @@ import struct
 import numpy as np
 from PIL import Image
 
+from client_util import videoDetector
+
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host_ip = ''  # your server ip
 port = 9999  # your socket communication port
@@ -21,9 +23,13 @@ payload_size = struct.calcsize("Q")
 while cap.isOpened():
     ret, frame = cap.read()
     if ret:
+        prompt = videoDetector(frame)
+        prompt += "best quality, marvel, hero, happy"
+        print(prompt)
         frame_cvt = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_pil = Image.fromarray(frame_cvt)
-        a = pickle.dumps(frame_pil)
+        combined_data = {'image': frame_pil, 'text': prompt}
+        a = pickle.dumps(combined_data)
         message = struct.pack("Q", len(a)) + a
         client_socket.sendall(message)
 
